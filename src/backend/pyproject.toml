@@ -16,6 +16,8 @@ llama-index-vector-stores-weaviate = "^0.1.4"
 llama-index = "^0.10.23"
 llama-index-embeddings-huggingface = "^0.1.4"
 llama-index-llms-huggingface = "^0.1.4"
+pyyaml = "^6.0.1"
+fastapi = "^0.110.0"
 
 
 [tool.poetry.group.dev.dependencies]

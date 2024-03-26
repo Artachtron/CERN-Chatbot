@@ -5,6 +5,7 @@ from backend.rag.model import Model
 from pathlib import Path
 import time
 from typing import Iterable
+from backend.utils.conf import CONFIG
 
 
 def data_from_file(filename: str) -> dict[str, Iterable]:
@@ -17,11 +18,8 @@ def data_from_file(filename: str) -> dict[str, Iterable]:
     tables = sorted_elements["Table"]
     texts = sorted_elements["CompositeElement"]
 
-    I2T_MODEL = "Salesforce/blip-image-captioning-base"
-    T2T_MODEL = "HuggingFaceH4/zephyr-7b-beta"
-
-    I2T_model = Model(I2T_MODEL)
-    T2T_model = Model(T2T_MODEL)
+    I2T_model = Model(CONFIG.image_to_text_model)
+    T2T_model = Model(CONFIG.text_to_text_model)
 
     image_summaries = (get_image_summary(I2T_model, image) for image in images)
     tables_summaries = (get_table_summary(T2T_model, table.text) for table in tables)
