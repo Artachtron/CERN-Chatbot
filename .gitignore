@@ -1,0 +1,7 @@
+src/experiment/*
+.venv/*
+poetry.lock
+__pycache__/
+src/secrets.env
+src/backend/secrets.env
+resources/*

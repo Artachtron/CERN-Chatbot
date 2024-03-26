@@ -4,13 +4,18 @@ version = "0.1.0"
 description = ""
 authors = ["Artachtron <florent.vaucher@gmail.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 unstructured = {extras = ["pdf"], version = "^0.12.6"}
 pdf2image = "^1.17.0"
 python-dotenv = "^1.0.1"
-weaviate-client = "^4.5.4"
+weaviate-client = ">=3.26.2,<4.0.0"
+llama-index-vector-stores-weaviate = "^0.1.4"
+llama-index = "^0.10.23"
+llama-index-embeddings-huggingface = "^0.1.4"
+llama-index-llms-huggingface = "^0.1.4"
 
 
 [tool.poetry.group.dev.dependencies]
