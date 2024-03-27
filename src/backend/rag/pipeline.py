@@ -8,7 +8,7 @@ from backend.rag.preprocess import (
     texts2docs,
 )
 from backend.rag.model import Model
-from backend.rag.embedding import create_vectorstore_index
+from backend.rag.embedding import create_vectorstore_index, load_vectorstore_index
 from pathlib import Path
 import time
 from typing import Iterable
@@ -46,10 +46,10 @@ def data_from_file(filename: str) -> dict[str, Iterable]:
     image_summaries = {
         image.name: get_image_summary(I2T_model, image.path) for image in images
     }
-    tables_summaries = {"table_1": "This is a table summary"}
-    # tables_summaries = {
-    #     table.id: get_table_summary(T2T_model, table.text) for table in tables
-    # }
+
+    tables_summaries = {
+        table.id: get_table_summary(T2T_model, table.text) for table in tables
+    }
 
     processed_texts = {text.id: text.text for text in texts}
 
@@ -69,30 +69,48 @@ def save_file_data(filename: str, data: dict[str, Iterable]) -> None:
     original_content = data["original"]
     insert_file_content(filename, original_content)
 
-    # processed_images = data["processed"]["image_summaries"]
-    # image_docs = images2docs(processed_images)
+    processed_images = data["processed"]["image_summaries"]
+    image_docs = images2docs(processed_images)
 
-    # processed_tables = data["processed"]["tables_summaries"]
-    # table_docs = tables2docs(processed_tables)
+    processed_tables = data["processed"]["tables_summaries"]
+    table_docs = tables2docs(processed_tables)
 
-    # processed_texts = data["processed"]["texts"]
-    # text_docs = texts2docs(processed_texts)
+    processed_texts = data["processed"]["texts"]
+    text_docs = texts2docs(processed_texts)
 
-    # processed_docs = image_docs + table_docs + text_docs
+    processed_docs = image_docs + table_docs + text_docs
 
-    # index = create_vectorstore_index(processed_docs)
-    # return index
+    index = create_vectorstore_index(processed_docs, Path(filename).stem)
+    return index
+
+
+def process_pdf_file(filename):
+    data = data_from_file(filename)
+    index = save_file_data(filename, data)
+    return index
+
+
+def load_file_data(filename):
+    index = load_vectorstore_index(Path(filename).stem)
+    return index
 
 
 if __name__ == "__main__":
     start = time.time()
     filename = "CERN-Brochure-2021-007-Eng.pdf"
-    
+
     if get_file_by_name(filename) is not None:
+        # process_pdf_file(filename)
         print("File already exists")
+        index = load_file_data(filename)
+        retriever = index.as_retriever()
+        query = "Who are the member states?"
+        print(query)
+        print("=" * 50)
+        print(retriever.retrieve(query))
+
     else:
-        data = data_from_file(filename)
-        index = save_file_data(filename, data)
+        process_pdf_file(filename)
 
     end = time.time()
     print(f"Time taken: {end-start} seconds")
