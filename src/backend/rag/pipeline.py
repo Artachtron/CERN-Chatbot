@@ -13,7 +13,12 @@ from pathlib import Path
 import time
 from typing import Iterable
 from backend.utils.conf import CONFIG
-from backend.databases.postgres.crud import insert_file_content, get_file_by_name
+from backend.databases.postgres.crud import (
+    insert_file_content,
+    get_file_by_name,
+    get_reference,
+)
+from backend.rag.chat import answer_question
 import PIL
 
 from dataclasses import dataclass
@@ -95,19 +100,32 @@ def load_file_data(filename):
     return index
 
 
+def find_context(filename: str, question: str) -> str:
+    index = load_file_data(filename)
+    retriever = index.as_retriever()
+    context = retriever.retrieve(question)
+
+    full_context = []
+    for c in context:
+        category = c.metadata["category"]
+        reference_id = c.metadata["reference"].replace("-", "")
+        reference = get_reference(category, reference_id, filename)
+        full_context.append(reference.text)
+
+    return "\n".join(full_context)
+
+
 if __name__ == "__main__":
     start = time.time()
     filename = "CERN-Brochure-2021-007-Eng.pdf"
 
     if get_file_by_name(filename) is not None:
-        # process_pdf_file(filename)
+
         print("File already exists")
-        index = load_file_data(filename)
-        retriever = index.as_retriever()
-        query = "Who are the member states?"
-        print(query)
-        print("=" * 50)
-        print(retriever.retrieve(query))
+        question = "Who are the member states?"
+        context = find_context(filename, question)
+        response = answer_question(question, context)
+        print(response)
 
     else:
         process_pdf_file(filename)

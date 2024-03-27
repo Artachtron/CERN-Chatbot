@@ -124,9 +124,7 @@ def save_index_storage(index, client, filename: str):
 def create_vectorstore_index(docs: list[Document], filename: str):
     client = get_client()
     embed_docs(docs, client)
-
     storage_context = get_storage_context(client)
-    # ingest_documents(docs, storage_context.vector_store, storage_context.docstore)
 
     embedding_model = get_embedding_model()
     index = get_vectorstore_index(client, embedding_model, storage_context, docs)

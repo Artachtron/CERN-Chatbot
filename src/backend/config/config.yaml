@@ -1,4 +1,4 @@
 image_to_text_model: Salesforce/blip-image-captioning-base
 text_to_text_model: HuggingFaceH4/zephyr-7b-alpha
-chat_bot_model: HuggingFaceH4/zephyr-7b-beta
+chat_model: HuggingFaceH4/zephyr-7b-beta
 embedding_model: BAAI/bge-small-en-v1.5

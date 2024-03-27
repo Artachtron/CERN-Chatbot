@@ -1,9 +1,12 @@
-
 def get_prompt(
-    context_name: str, context: str, preamble: str, query: str
+    context_name: str,
+    context: str,
+    preamble: str,
+    query: str,
+    query_name: str = "QUERY",
 ) -> list[dict]:
     separator = "=" * 20
-    user_prompt = f"QUERY: {query}\n{separator}\{context_name.upper()}: {context}\n{separator}\n"
+    user_prompt = f"{query_name}: {query}\n{separator}\{context_name.upper()}: {context}\n{separator}\n"
     messages = [
         {"role": "system", "content": preamble},
         {"role": "user", "content": user_prompt},
@@ -11,9 +14,17 @@ def get_prompt(
 
     return messages
 
+
 def get_table_prompt(table_text: str) -> list[dict]:
     preamble = """You are an assistant tasked with summarizing tables."""
     question = "Give a concise summary of the table."
     messages = get_prompt("TABLE", table_text, preamble, question)
+
+    return messages
+
+
+def get_qa_prompt(question: str, context: str) -> list[dict]:
+    preamble = """You are an assistant tasked with answering questions. Use the context provided"""
+    messages = get_prompt("CONTEXT", context, preamble, question, query_name="QUESTION")
 
     return messages

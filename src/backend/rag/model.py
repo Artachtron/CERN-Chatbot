@@ -24,4 +24,3 @@ class Model:
         return self.tokenizer.apply_chat_template(
             prompt, tokenize=False, add_generation_prompt=True
         )
-    
