@@ -127,8 +127,9 @@ def get_index(filename):
     return index
 
 
-def answer_question_from_context(question: str, context: str) -> list[dict]:
-    model = Model(CONFIG.chat_model)
+def answer_question_from_context(
+    model: Model, question: str, context: str
+) -> list[dict]:
     prompt = get_qa_prompt(question, context)
     chat_prompt = model.format_prompt(prompt)
     response = model.text_generation(chat_prompt)
@@ -136,10 +137,9 @@ def answer_question_from_context(question: str, context: str) -> list[dict]:
     return response
 
 
-def answer_question(filename, index):
-    question = "Who are the member states?"
+def answer_question(index, model, filename: str, question: str):
     context = find_context(index, filename, question)
-    response = answer_question(question, context)
+    response = answer_question_from_context(model, question, context)
     return response
 
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
     index = get_index(filename)
 
-    response = answer_question(filename, index)
+    response = answer_question(index, filename, "What is the LHC?")
     print(response)
 
     end = time.time()

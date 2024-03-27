@@ -24,7 +24,7 @@ def get_table_prompt(table_text: str) -> list[dict]:
 
 
 def get_qa_prompt(question: str, context: str) -> list[dict]:
-    preamble = """You are an assistant tasked with answering questions. Use the context provided"""
+    preamble = """You are an assistant tasked with answering questions. Use the context provided, just answer the question straight up."""
     messages = get_prompt("CONTEXT", context, preamble, question, query_name="QUESTION")
 
     return messages
