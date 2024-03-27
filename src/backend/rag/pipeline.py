@@ -1,3 +1,6 @@
+import time
+import PIL
+
 from backend.rag.parse import partition_file, sort_elements
 from backend.utils.path import PATH
 from backend.rag.preprocess import (
@@ -10,7 +13,7 @@ from backend.rag.preprocess import (
 from backend.rag.model import Model
 from backend.rag.embedding import create_vectorstore_index, load_vectorstore_index
 from pathlib import Path
-import time
+
 from typing import Iterable
 from backend.utils.conf import CONFIG
 from backend.databases.postgres.crud import (
@@ -18,9 +21,8 @@ from backend.databases.postgres.crud import (
     get_file_by_name,
     get_reference,
 )
-from backend.rag.chat import answer_question
-import PIL
 
+from backend.rag.template import get_qa_prompt
 from dataclasses import dataclass
 
 
@@ -100,8 +102,7 @@ def load_file_data(filename):
     return index
 
 
-def find_context(filename: str, question: str) -> str:
-    index = load_file_data(filename)
+def find_context(index, filename: str, question: str) -> str:
     retriever = index.as_retriever()
     context = retriever.retrieve(question)
 
@@ -115,20 +116,41 @@ def find_context(filename: str, question: str) -> str:
     return "\n".join(full_context)
 
 
+def get_index(filename):
+    if get_file_by_name(filename) is not None:
+        print("File already exists")
+        index = load_file_data(filename)
+
+    else:
+        index = process_pdf_file(filename)
+
+    return index
+
+
+def answer_question_from_context(question: str, context: str) -> list[dict]:
+    model = Model(CONFIG.chat_model)
+    prompt = get_qa_prompt(question, context)
+    chat_prompt = model.format_prompt(prompt)
+    response = model.text_generation(chat_prompt)
+
+    return response
+
+
+def answer_question(filename, index):
+    question = "Who are the member states?"
+    context = find_context(index, filename, question)
+    response = answer_question(question, context)
+    return response
+
+
 if __name__ == "__main__":
     start = time.time()
     filename = "CERN-Brochure-2021-007-Eng.pdf"
 
-    if get_file_by_name(filename) is not None:
+    index = get_index(filename)
 
-        print("File already exists")
-        question = "Who are the member states?"
-        context = find_context(filename, question)
-        response = answer_question(question, context)
-        print(response)
-
-    else:
-        process_pdf_file(filename)
+    response = answer_question(filename, index)
+    print(response)
 
     end = time.time()
     print(f"Time taken: {end-start} seconds")
