@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from llama_index.core import VectorStoreIndex
 from backend.rag.model import Model
 from backend.utils.conf import CONFIG
+from functools import lru_cache
 
 
 @dataclass
@@ -17,3 +18,8 @@ class ChatBot:
 
     def get_answer(self, question: str):
         return answer_question(self.index, self.model, self.filename, question)
+
+
+@lru_cache
+def get_chatbot(filename: str) -> ChatBot:
+    return ChatBot(filename)
