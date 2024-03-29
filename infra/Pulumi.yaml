@@ -1,0 +1,10 @@
+name: CERN_RAG
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: A Python program to deploy a Kubernetes cluster on Azure
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: kubernetes-azure-python

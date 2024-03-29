@@ -5,3 +5,4 @@ __pycache__/
 src/backend/secrets.env
 resources/*
 src/backend/databases/postgres/database.yaml
+

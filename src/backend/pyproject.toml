@@ -22,6 +22,8 @@ sqlmodel = "^0.0.16"
 psycopg2-binary = "^2.9.9"
 alembic = "^1.13.1"
 uvicorn = "^0.29.0"
+pulumi-kubernetes = "^4.9.1"
+langchain = "^0.1.13"
 
 
 [tool.poetry.group.dev.dependencies]
