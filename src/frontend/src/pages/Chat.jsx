@@ -8,12 +8,7 @@ import Messages from "../components/Messages";
 const Chat = () => {
     const [messages, setMessages] = useState([
         { from: "computer", text: "Hi, My Name is CERN Bot" },
-        { from: "me", text: "Hey there" },
-        { from: "me", text: "Myself Florent Vaucher" },
-        {
-            from: "computer",
-            text: "Nice to meet you. You can send me message and i'll reply you with same message.",
-        },
+        { from: "computer", text: "I'm here to answer your question regarding CERN." },
     ]);
     const [inputMessage, setInputMessage] = useState("");
 
@@ -43,7 +38,7 @@ const Chat = () => {
 
     return (
         <Flex w="100%" h="100vh" justify="center" align="center">
-            <Flex w="40%" h="90%" flexDir="column">
+            <Flex w="40%" h="90%" flexDir="column" >
                 <Header />
                 <Divider />
                 <Messages messages={messages} />

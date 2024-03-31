@@ -149,8 +149,8 @@ if __name__ == "__main__":
 
     index = get_index(filename)
 
-    response = answer_question(index, filename, "What is the LHC?")
-    print(response)
+    # response = answer_question(index, filename, "What is the LHC?")
+    # print(response)
 
     end = time.time()
     print(f"Time taken: {end-start} seconds")

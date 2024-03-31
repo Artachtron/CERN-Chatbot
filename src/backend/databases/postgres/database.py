@@ -4,28 +4,33 @@ import yaml
 from backend.utils.path import PATH
 from backend.databases.postgres.domain.models import *
 from contextlib import contextmanager
+from dotenv import dotenv_values
+
+# pg_dump -E UTF-8 -U cern -d cern_db -f "H:/Codes/Demo/CERN RAG/resources/database/cern_db.sql"
+# docker exec -i $(docker-compose ps -q database) psql -U cern -d cern_db < ../resources/database/cern_db.sql
 
 
 class PostgresConfig(BaseModel):
-    user: str
-    password: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
     host: str
     port: int
-    database: str
+    POSTGRES_DB: str
 
     @property
     def url(self):
-        return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.host}:{self.port}/{self.POSTGRES_DB}"
 
 
-config_path = PATH.postgres / "database.yaml"
+config_path = PATH.postgres / "database.production.env"
 
-with open(config_path) as config_file:
-    Postgres = PostgresConfig(**yaml.safe_load(config_file))
+config = dotenv_values(config_path)
+
+postgres = PostgresConfig(**config)
 
 
 def get_engine():
-    return create_engine(Postgres.url, echo=True)
+    return create_engine(postgres.url, echo=True)
 
 
 @contextmanager

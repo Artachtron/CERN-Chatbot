@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from sqlmodel import SQLModel
 from alembic import context
-from backend.databases.postgres.database import Postgres
+from backend.databases.postgres.database import postgres
 from backend.databases.postgres.domain.models import *
 
 # this is the Alembic Config object, which provides
@@ -12,7 +12,7 @@ from backend.databases.postgres.domain.models import *
 config = context.config
 
 # Substituting the URL in the config file with the one from the database.py file
-config.set_main_option("sqlalchemy.url", Postgres.url)
+config.set_main_option("sqlalchemy.url", postgres.url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
