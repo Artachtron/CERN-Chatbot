@@ -11,7 +11,7 @@ from backend.rag.preprocess import (
     texts2docs,
 )
 from backend.rag.model import Model
-from backend.rag.embedding import create_vectorstore_index, load_vectorstore_index
+from backend.rag.embedding import get_client
 from pathlib import Path
 
 from typing import Iterable
@@ -39,19 +39,22 @@ def data_from_file(filename: str) -> dict[str, Iterable]:
     elements, temp_folder = partition_file(filepath)
     sorted_elements = sort_elements(elements)
 
-    images = [
-        Image(name=image.name, path=image, image_bytes=PIL.Image.open(image).tobytes())
+    images = {
+        f"{filename}_{image.name}": Image(
+            name=image.name, path=image, image_bytes=PIL.Image.open(image).tobytes()
+        )
         for image in Path(temp_folder.name).iterdir()
-    ]
+    }
 
-    tables = sorted_elements["Table"]
-    texts = sorted_elements["CompositeElement"]
+    tables = {table.id: table for table in sorted_elements["Table"]}
+    texts = {text.id: text for text in sorted_elements["CompositeElement"]}
 
     I2T_model = Model(CONFIG.image_to_text_model)
     T2T_model = Model(CONFIG.text_to_text_model)
 
     image_summaries = {
-        image.name: get_image_summary(I2T_model, image.path) for image in images
+        f"{filename}_{image.name}": get_image_summary(I2T_model, image.path)
+        for image in images
     }
 
     tables_summaries = {
@@ -73,22 +76,47 @@ def data_from_file(filename: str) -> dict[str, Iterable]:
 
 
 def save_file_data(filename: str, data: dict[str, Iterable]) -> None:
-    original_content = data["original"]
-    insert_file_content(filename, original_content)
+    client = get_client()
+    with client:
+        original_images = data["original"]["images"]
+        original_tables = data["original"]["tables"]
+        original_texts = data["original"]["texts"]
+        processed_images = data["processed"]["image_summaries"]
+        processed_tables = data["processed"]["tables_summaries"]
+        processed_texts = data["processed"]["texts"]
 
-    processed_images = data["processed"]["image_summaries"]
-    image_docs = images2docs(processed_images)
+        collection_name = "CERN"
+        reference_name = f"reference_{collection_name}"
 
-    processed_tables = data["processed"]["tables_summaries"]
-    table_docs = tables2docs(processed_tables)
+        client.create_reference_and_collection(collection_name, reference_name)
 
-    processed_texts = data["processed"]["texts"]
-    text_docs = texts2docs(processed_texts)
+        for image_id, (image, processed_image) in zip(
+            original_images.items(), processed_images.values()
+        ):
+            client.add_document_with_reference(
+                collection_name=collection_name,
+                document=image,
+                reference=processed_image,
+                reference_collection=reference_name,
+                reference_uuid=image_id,
+            )
 
-    processed_docs = image_docs + table_docs + text_docs
+    # original_content = data["original"]
+    # insert_file_content(filename, original_content)
 
-    index = create_vectorstore_index(processed_docs, Path(filename).stem)
-    return index
+    # processed_images = data["processed"]["image_summaries"]
+    # image_docs = images2docs(processed_images)
+
+    # processed_tables = data["processed"]["tables_summaries"]
+    # table_docs = tables2docs(processed_tables)
+
+    # processed_texts = data["processed"]["texts"]
+    # text_docs = texts2docs(processed_texts)
+
+    # processed_docs = image_docs + table_docs + text_docs
+
+    # index = create_vectorstore_index(processed_docs, Path(filename).stem)
+    # return index
 
 
 def process_pdf_file(filename):

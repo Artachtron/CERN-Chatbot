@@ -3,12 +3,12 @@ from unstructured.documents.elements import Element
 from backend.utils.path import PATH
 from pathlib import Path
 
+
 def partition_file(file_path: Path):
     filename = file_path.stem
     print(f"Processing {filename}")
     temp_folder = PATH.create_temp_folder()
- 
-    
+
     elements = partition_pdf(
         filename=file_path,
         languages=["en"],
@@ -18,7 +18,8 @@ def partition_file(file_path: Path):
     )
     return elements, temp_folder
 
-def sort_elements(elements: list[Element]):
+
+def sort_elements(elements: list[Element]) -> dict[str, list[Element]]:
     sorted_elements = {}
     for el in elements:
         category = el.category
@@ -27,6 +28,3 @@ def sort_elements(elements: list[Element]):
         sorted_elements[category].append(el)
 
     return sorted_elements
-
-
-
