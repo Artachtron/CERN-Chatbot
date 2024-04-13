@@ -126,7 +126,7 @@ def store_file_data(collection_name: str, data: dict[str, Iterable]) -> None:
         for image, processed_image in zip(original_images, processed_images):
             client.add_document_with_reference(
                 collection_name=collection_name,
-                document={"content": processed_image},
+                document={"content": processed_image, "type": "image"},
                 reference={"content": image, "type": "image"},
                 reference_collection=reference_name,
                 # reference_id=image_id,
@@ -136,7 +136,7 @@ def store_file_data(collection_name: str, data: dict[str, Iterable]) -> None:
             client.add_document_with_reference(
                 collection_name=collection_name,
                 document={"content": processed_table, "type": "table"},
-                reference={"content": table["text"]},
+                reference={"content": table["text"], "type": "table"},
                 reference_collection=reference_name,
                 reference_id=table["element_id"],
             )
@@ -144,8 +144,8 @@ def store_file_data(collection_name: str, data: dict[str, Iterable]) -> None:
         for text, processed_text in zip(original_texts, processed_texts):
             client.add_document_with_reference(
                 collection_name=collection_name,
-                document={"content": text["text"]},
-                reference={"content": processed_text, "type": "text"},
+                document={"content": processed_text, "type": "text"},
+                reference={"content": text["text"], "type": "text"},
                 reference_collection=reference_name,
                 reference_id=text["element_id"],
             )
