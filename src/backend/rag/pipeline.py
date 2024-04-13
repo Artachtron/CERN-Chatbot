@@ -52,24 +52,24 @@ def data_from_file(filename: str) -> dict[str, Iterable]:
     I2T_model = Model(CONFIG.image_to_text_model)
     T2T_model = Model(CONFIG.text_to_text_model)
 
-    image_summaries = {
-        f"{filename}_{image.name}": get_image_summary(I2T_model, image.path)
-        for image in images
-    }
+    # image_summaries = {
+    #     f"{filename}_{image.name}": get_image_summary(I2T_model, image.path)
+    #     for image in images.values()
+    # }
 
-    tables_summaries = {
-        table.id: get_table_summary(T2T_model, table.text) for table in tables
-    }
+    # tables_summaries = {
+    #     table.id: get_table_summary(T2T_model, table.text) for table in tables.values()
+    # }
 
-    processed_texts = {text.id: text.text for text in texts}
+    processed_texts = {text.id: text.text for text in texts.values()}
 
     temp_folder.cleanup()
 
     return {
         "original": {"images": images, "tables": tables, "texts": texts},
         "processed": {
-            "image_summaries": image_summaries,
-            "tables_summaries": tables_summaries,
+            # "image_summaries": image_summaries,
+            # "tables_summaries": tables_summaries,
             "texts": processed_texts,
         },
     }
@@ -78,19 +78,18 @@ def data_from_file(filename: str) -> dict[str, Iterable]:
 def save_file_data(filename: str, data: dict[str, Iterable]) -> None:
     client = get_client()
     with client:
-        original_images = data["original"]["images"]
-        original_tables = data["original"]["tables"]
-        original_texts = data["original"]["texts"]
-        processed_images = data["processed"]["image_summaries"]
-        processed_tables = data["processed"]["tables_summaries"]
-        processed_texts = data["processed"]["texts"]
+        original_images = data["original"].get("images", {})
+        original_tables = data["original"].get("tables", {})
+        original_texts = data["original"].get("texts", {})
+        processed_images = data["processed"].get("image_summaries", {})
+        processed_tables = data["processed"].get("tables_summaries", {})
+        processed_texts = data["processed"].get("texts", {})
 
         collection_name = "CERN"
         reference_name = f"reference_{collection_name}"
+        # client.create_reference_and_collection(collection_name, reference_name)
 
-        client.create_reference_and_collection(collection_name, reference_name)
-
-        for image_id, (image, processed_image) in zip(
+        """ for (image_id, image), processed_image in zip(
             original_images.items(), processed_images.values()
         ):
             client.add_document_with_reference(
@@ -99,24 +98,18 @@ def save_file_data(filename: str, data: dict[str, Iterable]) -> None:
                 reference=processed_image,
                 reference_collection=reference_name,
                 reference_uuid=image_id,
+            ) """
+
+        for (text_id, text), processed_text in zip(
+            original_texts.items(), processed_texts.values()
+        ):
+            client.add_document_with_reference(
+                collection_name=collection_name,
+                document={"content": text.text},
+                reference={"content": processed_text},
+                reference_collection=reference_name,
+                reference_id=text_id,
             )
-
-    # original_content = data["original"]
-    # insert_file_content(filename, original_content)
-
-    # processed_images = data["processed"]["image_summaries"]
-    # image_docs = images2docs(processed_images)
-
-    # processed_tables = data["processed"]["tables_summaries"]
-    # table_docs = tables2docs(processed_tables)
-
-    # processed_texts = data["processed"]["texts"]
-    # text_docs = texts2docs(processed_texts)
-
-    # processed_docs = image_docs + table_docs + text_docs
-
-    # index = create_vectorstore_index(processed_docs, Path(filename).stem)
-    # return index
 
 
 def process_pdf_file(filename):
@@ -174,8 +167,8 @@ def answer_question(index, model, filename: str, question: str):
 if __name__ == "__main__":
     start = time.time()
     filename = "CERN-Brochure-2021-007-Eng.pdf"
-
-    index = get_index(filename)
+    process_pdf_file(filename)
+    # index = get_index(filename)
 
     # response = answer_question(index, filename, "What is the LHC?")
     # print(response)
