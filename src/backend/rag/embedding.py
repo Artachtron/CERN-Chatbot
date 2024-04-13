@@ -1,6 +1,7 @@
 from functools import lru_cache
 import weaviate
 import weaviate.classes as wvc
+import time
 
 from weaviate.classes.config import ReferenceProperty, Property
 from weaviate.classes.config import Configure
@@ -112,6 +113,8 @@ class Weaviate:
         uuid: str | None = None,
         reference_name: str = "",
         reference_id: str = "",
+        retries: int = 5,
+        delay: int = 5,
     ):
         references = {reference_name: reference_id} if reference_name else {}
         references = {}
@@ -120,9 +123,16 @@ class Weaviate:
             document[reference_name] = reference_id
 
         collection = self.get_collection(collection_name)
-        return collection.data.insert(
-            properties=document, uuid=uuid, references=references
-        )
+        for i in range(retries):
+            try:
+                return collection.data.insert(
+                    properties=document, uuid=uuid, references=references
+                )
+            except weaviate.exceptions.UnexpectedStatusCodeError as e:
+                if i < retries - 1:  # i is zero indexed
+                    time.sleep(delay)  # wait before trying again
+                else:
+                    raise e
 
     def _create_reference(self, reference_name: str, reference_id):
         return {self._format_reference(reference_name): reference_id}
@@ -321,6 +331,12 @@ if __name__ == "__main__":
         # print(client.client.collections.list_all())
         # client.client.collections.delete_all()
         
+        """ for col in client.client.collections.list_all():
+            if 'LHC' in col:
+                client.client.collections.delete(col) """
+        
+        print(client.client.collections.list_all().keys())
+        
         collection_name = "Quick_Facts_CERN_2021"
         reference_name = f"Originals_{collection_name}"
         cern_collection = client.get_collection(collection_name)
@@ -335,7 +351,7 @@ if __name__ == "__main__":
         result = client.query_reference_context(collection_name, query, reference_name, 3)
         separator = "\n"*2 + "=" * 50 + "\n"*2
         context = f"{separator}".join([result['content'] for result in result])
-        print(context)
+        # print(context)
         # print(len(result))
 
         # client.client.collections.delete_all()

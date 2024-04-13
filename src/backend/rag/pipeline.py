@@ -54,38 +54,32 @@ def data_from_file(filename: str) -> dict[str, Iterable]:
     sorted_elements = sort_elements(elements)
     I2T_model = Model(CONFIG.image_to_text_model)
     try:
-        images = {
-            f"{filename}_{image.name}": Image(
+        images = [
+            Image(
                 name=image.name, path=image, image_bytes=get_resized_image_bytes(image)
             )
             for image in Path(temp_folder.name).iterdir()
-        }
+        ]
 
-        image_summaries = {
-            image_name: get_image_summary(I2T_model, image.path)
-            for image_name, image in images.items()
-        }
-        image_bytes = {
-            image_name: base64.b64encode(image.image_bytes).decode("utf-8")
-            for image_name, image in images.items()
-        }
+        image_bytes = [
+            base64.b64encode(image.image_bytes).decode("utf-8") for image in images
+        ]
+
+        image_summaries = [get_image_summary(I2T_model, image.path) for image in images]
 
     finally:
         temp_folder.cleanup()
 
-    tables = {table.id: table for table in sorted_elements["Table"]}
-    texts = {text.id: text for text in sorted_elements["CompositeElement"]}
+    tables = [table.to_dict() for table in sorted_elements["Table"]]
+    texts = [text.to_dict() for text in sorted_elements["CompositeElement"]]
 
     # T2T_model = Model(CONFIG.text_to_text_model)
     T2T_model = Cohere()
 
-    tables_summaries = {
-        table.id: get_table_summary(T2T_model, table.text) for table in tables.values()
-    }
+    tables_summaries = [get_table_summary(T2T_model, table["text"]) for table in tables]
 
-    processed_texts = {text.id: text.text for text in texts.values()}
-
-    return {
+    processed_texts = [text["text"] for text in texts]
+    data = {
         "original": {
             "images": image_bytes,
             "tables": tables,
@@ -98,64 +92,75 @@ def data_from_file(filename: str) -> dict[str, Iterable]:
         },
     }
 
+    return data
+
+
+import json
+
 
 def save_file_data(collection_name: str, data: dict[str, Iterable]) -> None:
+    with open(PATH.resources / f"{collection_name}.json", "w") as f:
+        json.dump(data, f)
+
+
+def load_file_data(collection_name: str) -> dict[str, Iterable]:
+    with open(PATH.resources / f"{collection_name}.json", "r") as f:
+        data = json.load(f)
+    return data
+
+
+def store_file_data(collection_name: str, data: dict[str, Iterable]) -> None:
     client = get_client()
     with client:
-        original_images = data["original"].get("images", {})
-        original_tables = data["original"].get("tables", {})
-        original_texts = data["original"].get("texts", {})
-        processed_images = data["processed"].get("image_summaries", {})
-        processed_tables = data["processed"].get("tables_summaries", {})
-        processed_texts = data["processed"].get("texts", {})
+        original_images = data["original"].get("images", [])
+        original_tables = data["original"].get("tables", [])
+        original_texts = data["original"].get("texts", [])
+        processed_images = data["processed"].get("image_summaries", [])
+        processed_tables = data["processed"].get("tables_summaries", [])
+        processed_texts = data["processed"].get("texts", [])
 
         collection_name = collection_name
         reference_name = f"Originals_{collection_name}"
         client.create_reference_and_collection(collection_name, reference_name)
 
-        for (image_id, image), processed_image in zip(
-            original_images.items(), processed_images.values()
-        ):
+        for image, processed_image in zip(original_images, processed_images):
             client.add_document_with_reference(
                 collection_name=collection_name,
                 document={"content": processed_image},
-                reference={"content": image},
+                reference={"content": image, "type": "image"},
                 reference_collection=reference_name,
                 # reference_id=image_id,
             )
 
-        for (table_id, table), processed_table in zip(
-            original_tables.items(), processed_tables.values()
-        ):
+        for table, processed_table in zip(original_tables, processed_tables):
             client.add_document_with_reference(
                 collection_name=collection_name,
-                document={"content": processed_table},
-                reference={"content": table.text},
+                document={"content": processed_table, "type": "table"},
+                reference={"content": table["text"]},
                 reference_collection=reference_name,
-                reference_id=table_id,
+                reference_id=table["element_id"],
             )
 
-        for (text_id, text), processed_text in zip(
-            original_texts.items(), processed_texts.values()
-        ):
+        for text, processed_text in zip(original_texts, processed_texts):
             client.add_document_with_reference(
                 collection_name=collection_name,
-                document={"content": text.text},
-                reference={"content": processed_text},
+                document={"content": text["text"]},
+                reference={"content": processed_text, "type": "text"},
                 reference_collection=reference_name,
-                reference_id=text_id,
+                reference_id=text["element_id"],
             )
 
 
 def process_pdf_file(filename: str, collection_name: str):
     data = data_from_file(filename)
-    index = save_file_data(collection_name, data)
-    return index
+    save_file_data(collection_name, data)
+    # index = save_file_data(collection_name, data)
+    # return index
 
 
-def load_file_data(filename):
-    index = load_vectorstore_index(Path(filename).stem)
-    return index
+# def load_file_data(filename):
+#     index = load_vectorstore_index(Path(filename).stem)
+#     return index
 
 
 def find_context(index, filename: str, question: str) -> str:
@@ -200,9 +205,17 @@ def answer_question(index, model, filename: str, question: str):
 
 
 if __name__ == "__main__":
+    import json
+
     start = time.time()
     filename = "CERN-Brochure-2021-004-Eng.pdf"
-    process_pdf_file(filename, "LHC_Brochure_2021")
+    collection_name = "LHC_Brochure_2021"
+    # collection_name = "CERN_Quick_Facts_2021"
+
+    # process_pdf_file(filename, collection_name)
+    data = load_file_data(collection_name)
+    store_file_data(collection_name, data)
+
     # index = get_index(filename)
 
     # response = answer_question(index, filename, "What is the LHC?")
