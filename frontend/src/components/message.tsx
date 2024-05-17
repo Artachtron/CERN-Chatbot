@@ -1,10 +1,9 @@
 import React from "react";
 import { Avatar, Box, Card, CardContent, Typography } from "@mui/material";
-
-interface MessageProps {
+export type MessageProps = {
+  username: string;
   text: string;
-  avatarUrl: string;
-}
+};
 
 function Message({ text, username }: MessageProps) {
   const getUserAvatar = (username: string) => {

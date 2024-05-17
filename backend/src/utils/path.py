@@ -3,10 +3,11 @@ import tempfile
 
 
 class PathManager:
-    backend = Path(__file__).parents[1]
+    backend = Path(__file__).parents[2]
+    source = backend / "src"
     resources = backend / "resources"
-    config = backend / "config"
-    databases = backend / "databases"
+    config = source / "config"
+    databases = source / "databases"
     documents = databases / "documents"
     postgres = databases / "postgres"
 

@@ -2,15 +2,18 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, TextField, Button } from "@mui/material";
-import Message from "./message";
+import Message, { MessageProps } from "./message";
+import { BASE_URL } from "@/utils/backend";
 
 function Chat() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<MessageProps[]>([]);
 
   const [message, setMessage] = useState("");
   const [isBotTyping, setIsBotTyping] = useState(false);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
     event.preventDefault();
     if (!message.trim().length) return;
 
@@ -19,7 +22,7 @@ function Chat() {
     setMessages([...messages, { username: "Human", text: message }]);
     setMessage("");
 
-    const response = await fetch("http://localhost:8000/chat/question", {
+    const response = await fetch(`${BASE_URL}/chat/question`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -31,7 +34,7 @@ function Chat() {
     console.log(data);
 
     setTimeout(() => {
-      setMessages((old) => [...old, { from: "Bot", text: data.answer }]);
+      setMessages((old) => [...old, { username: "Bot", text: data.answer }]);
     }, 1000);
   };
 
