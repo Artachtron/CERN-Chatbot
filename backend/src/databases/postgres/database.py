@@ -1,8 +1,7 @@
 from sqlmodel import Session, create_engine
 from pydantic import BaseModel
-import yaml
-from backend.utils.path import PATH
-from backend.databases.postgres.domain.models import *
+from utils.path import PATH
+from databases.postgres.domain.models import *
 from contextlib import contextmanager
 from dotenv import dotenv_values
 

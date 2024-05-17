@@ -1,4 +1,4 @@
-from backend.rag.template import get_table_prompt
+from rag.template import get_table_prompt
 from llama_index.core import Document
 from typing import Iterable
 

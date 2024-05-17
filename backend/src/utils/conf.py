@@ -1,6 +1,6 @@
 import yaml
 from pydantic import BaseModel
-from backend.utils.path import PATH
+from utils.path import PATH
 
 
 class Config(BaseModel):

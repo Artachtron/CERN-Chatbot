@@ -5,12 +5,7 @@ import { Card, CardContent, TextField, Button } from "@mui/material";
 import Message from "./message";
 
 function Chat() {
-  const [messages, setMessages] = useState([
-    { username: "Bot", text: "Hello, Human!" },
-    { username: "Human", text: "Hello, Bot!" },
-    { username: "Bot", text: "Hello, Human!" },
-    { username: "Human", text: "Hello, Bot!" },
-  ]);
+  const [messages, setMessages] = useState([]);
 
   const [message, setMessage] = useState("");
   const [isBotTyping, setIsBotTyping] = useState(false);

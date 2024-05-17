@@ -6,8 +6,8 @@ import hashlib
 import json
 from weaviate.classes.config import ReferenceProperty, Property
 from weaviate.classes.config import Configure
-from backend.utils.conf import CONFIG
-from backend.utils.tokens import (
+from utils.conf import CONFIG
+from utils.tokens import (
     HF_API_KEY,
     WCS_API_KEY,
     WCS_CLUSTER_URL,

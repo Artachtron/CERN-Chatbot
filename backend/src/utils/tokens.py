@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from backend.utils.path import PATH
+from utils.path import PATH
 import os
 
 load_dotenv(PATH.backend / "secrets.env")

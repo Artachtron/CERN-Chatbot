@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Session, select
-from backend.databases.postgres.database import get_engine, get_session
-from backend.databases.postgres.domain.models import (
+from databases.postgres.database import get_engine, get_session
+from databases.postgres.domain.models import (
     File,
     DataTable,
     DataImage,

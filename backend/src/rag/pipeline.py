@@ -11,7 +11,7 @@ from rag.preprocess import (
     tables2docs,
     texts2docs,
 )
-from rag.model import Model, Cohere
+from rag.model import Model
 from rag.embedding import get_client
 from pathlib import Path
 
