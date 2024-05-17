@@ -1,6 +1,6 @@
 from unstructured.partition.auto import partition_pdf
 from unstructured.documents.elements import Element
-from backend.utils.path import PATH
+from utils.path import PATH
 from pathlib import Path
 
 

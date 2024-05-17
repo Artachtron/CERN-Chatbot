@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request
 
-from backend.api.services.chatbot import get_chatbot
+from api.services.chatbot import get_chatbot
 from fastapi.responses import JSONResponse
-from backend.api.domain.models import Question
+from api.domain.models import Question
 
 
 router = APIRouter()

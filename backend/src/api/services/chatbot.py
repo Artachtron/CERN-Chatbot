@@ -1,8 +1,8 @@
-from backend.rag.pipeline import get_index, answer_question
+from rag.pipeline import get_index, answer_question
 from dataclasses import dataclass, field
 from llama_index.core import VectorStoreIndex
-from backend.rag.model import Model
-from backend.utils.conf import CONFIG
+from rag.model import Model
+from utils.conf import CONFIG
 from functools import lru_cache
 
 

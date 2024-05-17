@@ -2,28 +2,28 @@ import time
 import PIL
 import io
 import base64
-from backend.rag.parse import partition_file, sort_elements
-from backend.utils.path import PATH
-from backend.rag.preprocess import (
+from rag.parse import partition_file, sort_elements
+from utils.path import PATH
+from rag.preprocess import (
     get_table_summary,
     get_image_summary,
     images2docs,
     tables2docs,
     texts2docs,
 )
-from backend.rag.model import Model, Cohere
-from backend.rag.embedding import get_client
+from rag.model import Model, Cohere
+from rag.embedding import get_client
 from pathlib import Path
 
 from typing import Iterable
-from backend.utils.conf import CONFIG
-from backend.databases.postgres.crud import (
+from utils.conf import CONFIG
+from databases.postgres.crud import (
     insert_file_content,
     get_file_by_name,
     get_reference,
 )
 
-from backend.rag.template import get_qa_prompt
+from rag.template import get_qa_prompt
 from dataclasses import dataclass
 
 
