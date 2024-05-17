@@ -8,3 +8,4 @@ src/backend/databases/postgres/database.yaml
 infra/k8s/*
 *.production.env
 *.sql
+node_modules/

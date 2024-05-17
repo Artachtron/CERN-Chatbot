@@ -27,13 +27,13 @@ services:
       - ../resources/database/data:/var/lib/postgresql/data
       - ../resources/database/cern_db.sql:/docker-entrypoint-initdb.d/cern_db.sql
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - "8080:8080"
-    depends_on:
-      - database
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - database
 
 volumes:
   database:
