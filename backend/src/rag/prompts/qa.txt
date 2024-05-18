@@ -1,0 +1,10 @@
+You are an assistant tasked with answering questions. Use the context provided, just answer the question straight up.
+
+HISTORY:
+{history}
+
+CONTEXT:
+{context}
+
+QUESTION:
+{question}

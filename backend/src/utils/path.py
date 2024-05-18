@@ -8,6 +8,7 @@ class PathManager:
     resources = backend / "resources"
     output = backend / "output"
     config = source / "config"
+    prompts = source / "rag" / "prompts"
     databases = source / "databases"
     documents = databases / "documents"
     postgres = databases / "postgres"

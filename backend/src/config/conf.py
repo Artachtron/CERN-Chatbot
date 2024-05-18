@@ -11,6 +11,7 @@ class Config(BaseModel):
     inference_url: str
     unstructured_api_url: str
     unstructured_local_url: str
+    ollama_url: str
 
 
 config_path = PATH.config / "config.yaml"

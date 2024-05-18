@@ -19,23 +19,58 @@ function Chat() {
 
     setIsBotTyping(true);
 
-    setMessages([...messages, { username: "Human", text: message }]);
+    setMessages([
+      ...messages,
+      { username: "Human", text: message },
+      { username: "Bot", text: "" },
+    ]);
+
     setMessage("");
 
-    const response = await fetch(`${BASE_URL}/chat/question`, {
+    fetch(`${BASE_URL}/chat/question`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ question: message }),
+    }).then((response) => {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8", { fatal: true });
+
+      return new Promise((resolve, reject) => {
+        reader
+          .read()
+          .then(function process({ done, value }) {
+            if (done) {
+              resolve();
+              return;
+            }
+            const newData = decoder.decode(value);
+            console.log(newData);
+            setMessages((old) => {
+              const oldMessages = [...old];
+              const lastMessage = oldMessages.pop();
+              return [
+                ...oldMessages,
+                { username: "Bot", text: lastMessage?.text + newData },
+              ];
+            });
+
+            reader.read().then(process).catch(reject);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
     });
 
-    const data = await response.json();
-    console.log(data);
+    setIsBotTyping(false);
+    // const data = await response.json();
+    // console.log(data);
 
-    setTimeout(() => {
-      setMessages((old) => [...old, { username: "Bot", text: data.answer }]);
-    }, 1000);
+    // setTimeout(() => {
+    //   setMessages((old) => [...old, { username: "Bot", text: data }]);
+    // }, 1000);
   };
 
   const handleChangeMessage = (event: React.ChangeEvent<HTMLInputElement>) => {

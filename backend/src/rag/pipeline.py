@@ -4,6 +4,7 @@ import io
 import json
 import base64
 from rag.parse import partition_file, sort_elements
+from rag.query import find_context, format_context
 from utils.path import PATH
 from rag.preprocess import (
     get_table_summary,
@@ -28,8 +29,9 @@ from databases.postgres.crud import (
     get_file_by_name,
     get_reference,
 )
+from rag.llm import get_model
 
-from rag.template import get_qa_prompt
+from rag.template import get_qa_template
 from dataclasses import dataclass
 
 
@@ -115,7 +117,7 @@ def load_file_data(output_file: Path) -> dict[str, Iterable]:
     return data
 
 
-def store_file_data(collection_name: str, data: dict[str, Iterable]) -> None:
+def embed_data(collection_name: str, data: dict[str, Iterable]) -> None:
 
     original_images = data["original"].get("images", [])
     original_tables = data["original"].get("tables", [])
@@ -144,69 +146,39 @@ def store_file_data(collection_name: str, data: dict[str, Iterable]) -> None:
             )
 
 
-def process_pdf_file(filename: str, collection_name: str) -> dict[str, Iterable[Any]]:
-    output_file = PATH.output / Path(filename).stem / f"{collection_name}.json"
+def process_pdf_file(collection_name: str) -> dict[str, Iterable[Any]]:
+
+    output_file = PATH.output / collection_name / "processed.json"
     if output_file.exists():
         print(f"Loading data from {output_file}")
         return load_file_data(output_file)
 
-    print(f"Processing {filename}")
+    print(f"Processing {collection_name}")
     data = data_from_file(filename)
     save_file_data(output_file, data)
     return data
-    # index = save_file_data(collection_name, data)
-    # return index
 
 
-# def load_file_data(filename):
-#     index = load_vectorstore_index(Path(filename).stem)
-#     return index
+def answer_question(
+    question: str,
+    collection_name: str = "LHC_Brochure_2021",
+    history: str = "",
+    system: str = "You are an assistant tasked with answering questions. Use the context provided, just answer the question straight up.",
+):
+    with get_local_client() as client:
+        context = find_context(client, question, collection_name)
+        context = format_context(context)
 
+    data = dict(context=context, question=question, history=history, system=system)
 
-def find_context(index, filename: str, question: str) -> str:
-    retriever = index.as_retriever()
-    context = retriever.retrieve(question)
+    model = get_model()
 
-    full_context = []
-    for c in context:
-        category = c.metadata["category"]
-        reference_id = c.metadata["reference"].replace("-", "")
-        reference = get_reference(category, reference_id, filename)
-        full_context.append(reference.text)
+    pipeline_template = get_qa_template()
 
-    return "\n".join(full_context)
+    prompt = pipeline_template.format_prompt(**data)
 
-
-def get_index(filename):
-    if get_file_by_name(filename) is not None:
-        print("File already exists")
-        index = load_file_data(filename)
-
-    else:
-        index = process_pdf_file(filename)
-
-    return index
-
-
-def answer_question_from_context(
-    model: Model, question: str, context: str
-) -> list[dict]:
-    prompt = get_qa_prompt(question, context)
-    chat_prompt = model.format_prompt(prompt)
-    response = model.text_generation(chat_prompt)
-
-    return response
-
-
-def answer_question(index, model, filename: str, question: str):
-    context = find_context(index, filename, question)
-    response = answer_question_from_context(model, question, context)
-    return response
-
-
-def answer_question_without_context(model, question: str):
-    response = model.text_generation(question)
-    return response
+    for chunk in model.stream(prompt):
+        yield chunk
 
 
 if __name__ == "__main__":
@@ -215,32 +187,32 @@ if __name__ == "__main__":
     from weaviate.classes.query import Filter
 
     start = time.time()
-    filename = "CERN-Brochure-2021-004-Eng.pdf"
+
     collection_name = "LHC_Brochure_2021"
+    # filename = f"{collection_name}.pdf"
 
-    with get_local_client() as client:
-        col = client.collections.get(collection_name)
-        print(len(list(col.iterator())))
-        res = col.query.fetch_objects(
-            limit=10,
-            filters=Filter.by_property("type").equal("Table"),
-        )
+    # with get_local_client() as client:
+    #     col = client.collections.get(collection_name)
+    #     print(len(list(col.iterator())))
+    #     res = col.query.fetch_objects(
+    #         limit=10,
+    #         filters=Filter.by_property("type").equal("Table"),
+    #     )
 
-        print(res.objects)
+    #     obj = res.objects[0]
+    #     print(obj.properties["text"])
 
     # collection_name = "CERN_Quick_Facts_2021"
 
-    data = process_pdf_file(filename, collection_name)
+    # data = process_pdf_file(collection_name)
 
     # data = load_file_data(PATH.output / Path(filename).stem / f"{collection_name}.json")
     # for key, prop in data["processed"]["tables"][0]["metadata"].items():
     #     print(f"{key} {type(prop)}")
     # store_file_data(collection_name, data)
 
-    # index = get_index(filename)
-
-    # response = answer_question(index, filename, "What is the LHC?")
-    # print(response)
+    response = answer_question("What is the LHC?")
+    print(response)
 
     end = time.time()
     print(f"Time taken: {end-start} seconds")
