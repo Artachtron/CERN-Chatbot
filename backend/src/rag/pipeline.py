@@ -79,6 +79,9 @@ def data_from_file(filename: str) -> dict[str, Iterable]:
     tables = [table for table in sorted_elements["Table"]]
     texts = [text for text in sorted_elements["CompositeElement"]]
 
+    # for table in tables:
+    #     table["metadata"].pop("table_as_cells", None)
+
     # T2T_model = Model(CONFIG.text_to_text_model)
     T2T_model = Cohere()
 
@@ -118,7 +121,7 @@ def store_file_data(collection_name: str, data: dict[str, Iterable]) -> None:
     original_tables = data["original"].get("tables", [])
     original_texts = data["original"].get("texts", [])
     processed_images = data["processed"].get("image_summaries", [])
-    processed_tables = data["processed"].get("tables_summaries", [])
+    processed_tables = data["processed"].get("tables", [])
     processed_texts = data["processed"].get("texts", [])
 
     with get_local_client() as client:
@@ -209,17 +212,29 @@ def answer_question_without_context(model, question: str):
 if __name__ == "__main__":
 
     import json
+    from weaviate.classes.query import Filter
 
     start = time.time()
     filename = "CERN-Brochure-2021-004-Eng.pdf"
     collection_name = "LHC_Brochure_2021"
 
+    with get_local_client() as client:
+        col = client.collections.get(collection_name)
+        print(len(list(col.iterator())))
+        res = col.query.fetch_objects(
+            limit=10,
+            filters=Filter.by_property("type").equal("Table"),
+        )
+
+        print(res.objects)
 
     # collection_name = "CERN_Quick_Facts_2021"
 
-    # process_pdf_file(filename, collection_name)
+    data = process_pdf_file(filename, collection_name)
 
-    data = load_file_data(PATH.output / Path(filename).stem / f"{collection_name}.json")
+    # data = load_file_data(PATH.output / Path(filename).stem / f"{collection_name}.json")
+    # for key, prop in data["processed"]["tables"][0]["metadata"].items():
+    #     print(f"{key} {type(prop)}")
     # store_file_data(collection_name, data)
 
     # index = get_index(filename)
