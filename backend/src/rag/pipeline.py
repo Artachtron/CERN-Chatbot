@@ -31,7 +31,7 @@ from databases.postgres.crud import (
 )
 from rag.llm import get_model
 
-from rag.template import get_qa_template
+from rag.template import get_rag_template, get_qa_prompt
 from dataclasses import dataclass
 
 
@@ -162,18 +162,26 @@ def process_pdf_file(collection_name: str) -> dict[str, Iterable[Any]]:
 def answer_question(
     question: str,
     collection_name: str = "LHC_Brochure_2021",
-    history: str = "",
+    history: list | None = None,
     system: str = "You are an assistant tasked with answering questions. Use the context provided, just answer the question straight up.",
 ):
+
     with get_local_client() as client:
         context = find_context(client, question, collection_name)
         context = format_context(context)
 
-    data = dict(context=context, question=question, history=history, system=system)
+    history = history or []
+    print(get_qa_prompt(history))
+    data = dict(
+        context=context,
+        question=question,
+        history=get_qa_prompt(history),
+        system=system,
+    )
 
     model = get_model()
 
-    pipeline_template = get_qa_template()
+    pipeline_template = get_rag_template()
 
     prompt = pipeline_template.format_prompt(**data)
 
@@ -211,8 +219,19 @@ if __name__ == "__main__":
     #     print(f"{key} {type(prop)}")
     # store_file_data(collection_name, data)
 
-    response = answer_question("What is the LHC?")
-    print(response)
+    messages = [
+        {"username": "human", "text": "What is the LHC?"},
+        {
+            "username": "ai",
+            "text": "The Large Hadron Collider (LHC) is the world's largest and most powerful particle accelerator. It first started up on 10 September 2008, and remains the latest addition to CERN's accelerator complex. The LHC consists of a 27-kilometre ring of superconducting magnets with a number of accelerating structures to boost the energy of the particles along the way.",
+        },
+        {"username": "human", "text": "What is the LHC again?"},
+    ]
+
+    qa_prompt = get_qa_prompt(messages)
+    print(qa_prompt)
+    # response = answer_question("What is the LHC?")
+    # print(response)
 
     end = time.time()
     print(f"Time taken: {end-start} seconds")

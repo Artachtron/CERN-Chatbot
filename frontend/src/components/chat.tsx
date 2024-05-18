@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent, TextField, Button } from "@mui/material";
 import Message, { MessageProps } from "./message";
 import { BASE_URL } from "@/utils/backend";
@@ -10,12 +10,17 @@ function Chat() {
 
   const [message, setMessage] = useState("");
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSubmit = async (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
     event.preventDefault();
-    if (!message.trim().length) return;
+    if (!message || !message.trim().length) return;
 
     setIsBotTyping(true);
 
@@ -32,7 +37,7 @@ function Chat() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ question: message }),
+      body: JSON.stringify({ question: message, history: messages }),
     }).then((response) => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8", { fatal: true });
@@ -42,6 +47,7 @@ function Chat() {
           .read()
           .then(function process({ done, value }) {
             if (done) {
+              setIsBotTyping(false);
               resolve();
               return;
             }
@@ -64,7 +70,6 @@ function Chat() {
       });
     });
 
-    setIsBotTyping(false);
     // const data = await response.json();
     // console.log(data);
 
@@ -78,7 +83,7 @@ function Chat() {
   };
 
   return (
-    <Card>
+    <Card className="w-[1000px]">
       <CardContent>
         <div className="h-[400px] overflow-auto mb-4">
           {messages.map((message, index) => (
@@ -88,6 +93,7 @@ function Chat() {
               username={message.username}
             />
           ))}
+          <div ref={messagesEndRef} />
         </div>
         <form>
           <TextField

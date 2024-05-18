@@ -3,7 +3,6 @@ from rag.pipeline import (
 )
 from dataclasses import dataclass, field
 from rag.model import Model
-from config.conf import CONFIG
 from functools import lru_cache
 from rag.llm import get_model
 
@@ -16,8 +15,8 @@ class ChatBot:
     def __post_init__(self):
         self.model = get_model()
 
-    def get_answer(self, question: str):
-        for chunk in answer_question(question):
+    def get_answer(self, question: str, history: list | None = None):
+        for chunk in answer_question(question, history=history):
             print(chunk)
             yield chunk
 

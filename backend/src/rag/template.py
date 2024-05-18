@@ -1,4 +1,8 @@
-from langchain_core.prompts import PromptTemplate, PipelinePromptTemplate
+from langchain_core.prompts import (
+    PromptTemplate,
+    PipelinePromptTemplate,
+    ChatPromptTemplate,
+)
 from utils.path import PATH
 from config.conf import CONFIG
 
@@ -42,7 +46,14 @@ def get_table_prompt(table_text: str) -> list[dict]:
 #     return messages
 
 
-def get_qa_template(model_name: str = CONFIG.chat_model) -> PipelinePromptTemplate:
+def get_qa_prompt(history: list[dict]):
+    # return ChatPromptTemplate.from_messages(
+    #     [(entry["username"], entry["text"]) for entry in history]
+    # )
+    return "\n\n".join([f"{entry['username']}: {entry['text']}" for entry in history])
+
+
+def get_rag_template(model_name: str = CONFIG.chat_model) -> PipelinePromptTemplate:
     model_template = get_template(f"{model_name.replace(':','_')}.txt")
     prompt_template = get_template("qa.txt")
 

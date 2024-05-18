@@ -24,6 +24,7 @@ uvicorn = "^0.29.0"
 unstructured = "^0.14.0"
 cohere = "^5.5.0"
 langchain-community = "^0.2.0"
+python-multipart = "^0.0.9"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.3"

@@ -23,13 +23,10 @@ function Message({ text, username }: MessageProps) {
           isHuman ? "flex-row-reverse" : "flex-row"
         } items-center`}
       >
-        <Avatar
-          src={getUserAvatar(username)}
-          className="w-12 h-12 mb-[-50px]"
-        />
+        <Avatar src={getUserAvatar(username)} className="w-12 h-12 " />
         <CardContent
           style={{ paddingBottom: 12 }}
-          className={`pt-3 pb-0 rounded-lg max-w-[200px] ${
+          className={`pt-3 pb-0 rounded-lg max-w-[500px] ${
             isHuman ? "bg-green-500 text-white" : "bg-blue-500 text-white"
           }`}
         >
