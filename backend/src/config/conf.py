@@ -8,6 +8,9 @@ class Config(BaseModel):
     text_to_text_model: str
     chat_model: str
     embedding_model: str
+    inference_url: str
+    unstructured_api_url: str
+    unstructured_local_url: str
 
 
 config_path = PATH.config / "config.yaml"

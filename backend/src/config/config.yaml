@@ -2,3 +2,6 @@ image_to_text_model: Salesforce/blip-image-captioning-base
 text_to_text_model: HuggingFaceH4/zephyr-7b-alpha
 chat_model: HuggingFaceH4/zephyr-7b-beta
 embedding_model: BAAI/bge-small-en-v1.5
+inference_url: "http://t2v-transformers:8080"
+unstructured_local_url: "http://localhost:8000"
+unstructured_api_url: https://innovatim-skzooc25.api.unstructuredapp.io
