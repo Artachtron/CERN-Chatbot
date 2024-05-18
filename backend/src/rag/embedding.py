@@ -1,12 +1,10 @@
-from functools import lru_cache
+import logging
 import weaviate
 import weaviate.classes as wvc
-import time
-import hashlib
 import json
 from weaviate.classes.config import ReferenceProperty, Property
 from weaviate.classes.config import Configure
-from utils.conf import CONFIG
+from config.conf import CONFIG
 from utils.tokens import (
     HF_API_KEY,
     WCS_API_KEY,
@@ -14,10 +12,11 @@ from utils.tokens import (
     COHERE_API_KEY,
 )
 import numpy as np
-
-from dataclasses import dataclass, field
 import uuid
 
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class UUIDEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -58,199 +57,59 @@ def maximal_marginal_relevance(results, k, lambda_param=0.5):
     
     return selected
 
-@dataclass
-class Weaviate:
-    embedding_model: str
-    wcs_cluster_url: str
-    client: weaviate.WeaviateClient = field(init=False)
 
-    def __enter__(self):
-        self.client = self.get_client()
-        return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.client.close()
+4
 
-    def get_client(self):
-        client = weaviate.connect_to_wcs(
-            cluster_url=WCS_CLUSTER_URL,
-            auth_credentials=weaviate.auth.AuthApiKey(WCS_API_KEY),
-            headers={
-                "X-HuggingFace-Api-Key": HF_API_KEY,
-                "X-Cohere-Api-Key": COHERE_API_KEY,
-            },
-        )
-        return client
 
-    def create_collection(
-        self,
-        collection_name: str,
-        raw: bool = False,
-        reference_name: str = "",
-        schema: list[dict] | None = None,
-    ):
-        schema = schema or []
 
-        vectorizer = (
-            # Configure.Vectorizer.text2vec_huggingface(model=self.embedding_model)
-            Configure.Vectorizer.text2vec_cohere()
-            if not raw
-            else None
-        )
+    
 
-        generative = Configure.Generative.cohere() if not raw else None
+def create_reference_and_collection(
+    self, collection_name: str, reference_name: str
+):
+    existing_collections = self.client.collections.list_all()
+    if not reference_name in existing_collections:
+        self.create_collection(collection_name=reference_name, raw=True)
 
-        references = (
-            [
-                # ReferenceProperty(name=reference_name, target_collection=reference_name)
-            ]
-            if reference_name
-            else []
-        )
+    else:
+        print(f"Collection {reference_name} already exists")
 
-        """ if reference_name:
-            ref_prop = Property(
-                name=self._format_reference(reference_name),
-                data_type=wvc.config.DataType.TEXT,
-                skip_vectorization=True,
-                vectorize_property_name=False,
-            )
-            schema.append(ref_prop) """
-
-        self.client.collections.create(
-            name=collection_name,
-            properties=schema,
-            vectorizer_config=vectorizer,
-            generative_config=generative,
-            references=references,
-        )
-
-    def create_reference_and_collection(
-        self, collection_name: str, reference_name: str
-    ):
-        existing_collections = self.client.collections.list_all()
-        if not reference_name in existing_collections:
-            self.create_collection(collection_name=reference_name, raw=True)
-
-        else:
-            print(f"Collection {reference_name} already exists")
-
-        if not collection_name in existing_collections:
-            self.create_collection(
-                collection_name=collection_name,
-                reference_name=reference_name,
-                raw=False,
-            )
-        else:
-            print(f"Collection {collection_name} already exists")
-
-    def get_collection(self, collection_name: str):
-        return self.client.collections.get(name=collection_name)
-
-    def add_document(
-        self,
-        collection_name: str,
-        document: dict,
-        uuid: str | None = None,
-        reference_name: str = "",
-        reference_id: str = "",
-        retries: int = 5,
-        delay: int = 5,
-    ):
-        references = {reference_name: reference_id} if reference_name else {}
-        references = {}
-
-        if reference_name:
-            document[reference_name] = reference_id
-
-        if not uuid:
-            document_json = json.dumps(document, sort_keys=True, cls=UUIDEncoder)
-            uuid = hashlib.sha256(document_json.encode()).hexdigest()[:32]
-
-        collection = self.get_collection(collection_name)
-        for i in range(retries):
-            try:
-                return collection.data.insert(
-                    properties=document, uuid=uuid, references=references
-                )
-            except weaviate.exceptions.UnexpectedStatusCodeError as e:
-                if "already exists" in str(e):
-                    print(
-                        f"Document with uuid {uuid} already exists in collection {collection_name}"
-                    )
-                    print(document)
-                    break
-                
-                elif "429" in str(e):
-                    print("Rate limit exceeded. Sleeping for 60 seconds.")
-                    time.sleep(60)  # Sleep for 60 seconds
-                    # collection.data.insert(document)
-
-                elif i < retries - 1:  # i is zero indexed
-                    time.sleep(delay)  # wait before trying again
-                else:
-                    raise e
-
-    def _create_reference(self, reference_name: str, reference_id):
-        return {self._format_reference(reference_name): reference_id}
-
-    def _format_reference(self, reference_name: str) -> str:
-        return f"{reference_name}"
-
-    def get_reference(self, obj, reference_name: str):
-        property_name = reference_name[0].lower() + reference_name[1:]
-        uuid = obj.properties.get(property_name)
-
-        return self._get_reference(reference_name, uuid)
-
-    def _get_reference(self, reference_name: str, reference_id: str):
-        reference_collection = self.get_collection(reference_name)
-        objects = {obj.uuid: obj for obj in reference_collection.iterator()}
-        for uuid, obj in objects.items():
-            if uuid == reference_id:
-                return obj
-
-    def add_documents(self, collection_name: str, documents: list[dict]):
-        collection = self.get_collection(collection_name)
-        collection.data.insert_many(objects=documents)
-
-    def add_document_with_reference(
-        self,
-        collection_name: str,
-        document: dict,
-        reference: dict,
-        reference_collection: str,
-        reference_id: str | None = None,
-    ):
-        reference_uuid = self.add_document(
-            collection_name=reference_collection,
-            document=reference,
-            uuid=reference_id,
-        )
-
-        self.add_document(
+    if not collection_name in existing_collections:
+        self.create_collection(
             collection_name=collection_name,
-            document=document,
-            reference_name=reference_collection,
-            reference_id=reference_uuid,
+            reference_name=reference_name,
+            raw=False,
         )
-
-    def query_reference_context(
-        self, collection_name: str, query: str, reference_name: str, top_k: int = 5, k: int = 1, lambda_param=0.5
-    ):
-        collection = self.get_collection(collection_name)
-        results = collection.query.near_text(query, limit=top_k, include_vector=True, return_metadata=["distance"])
-        
-        selected = maximal_marginal_relevance(results.objects, k, lambda_param)
-        selected_references = [self.get_reference(obj, reference_name).properties for obj in selected]
-        return selected_references
+    else:
+        print(f"Collection {collection_name} already exists")
 
 
-@lru_cache
-def get_client():
-    return Weaviate(
-        embedding_model=CONFIG.embedding_model, wcs_cluster_url=WCS_CLUSTER_URL
-    )
+
+def get_reference(self, obj, reference_name: str):
+    property_name = reference_name[0].lower() + reference_name[1:]
+    uuid = obj.properties.get(property_name)
+
+    return self._get_reference(reference_name, uuid)
+
+def _get_reference(self, reference_name: str, reference_id: str):
+    reference_collection = self.get_collection(reference_name)
+    objects = {obj.uuid: obj for obj in reference_collection.iterator()}
+    for uuid, obj in objects.items():
+        if uuid == reference_id:
+            return obj
+
+
+def query_reference_context(
+    self, collection_name: str, query: str, reference_name: str, top_k: int = 5, k: int = 1, lambda_param=0.5
+):
+    collection = self.get_collection(collection_name)
+    results = collection.query.near_text(query, limit=top_k, include_vector=True, return_metadata=["distance"])
+    
+    selected = maximal_marginal_relevance(results.objects, k, lambda_param)
+    selected_references = [self.get_reference(obj, reference_name).properties for obj in selected]
+    return selected_references
+
 
 
 if __name__ == "__main__":

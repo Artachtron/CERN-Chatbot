@@ -12,11 +12,11 @@ from rag.preprocess import (
     texts2docs,
 )
 from rag.model import Model
-from rag.embedding import get_client
+from rag.vector import get_local_client
 from pathlib import Path
 
 from typing import Iterable
-from utils.conf import CONFIG
+from config.conf import CONFIG
 from databases.postgres.crud import (
     insert_file_content,
     get_file_by_name,
@@ -110,7 +110,7 @@ def load_file_data(collection_name: str) -> dict[str, Iterable]:
 
 
 def store_file_data(collection_name: str, data: dict[str, Iterable]) -> None:
-    client = get_client()
+    client = get_local_client()
     with client:
         original_images = data["original"].get("images", [])
         original_tables = data["original"].get("tables", [])
@@ -201,6 +201,11 @@ def answer_question_from_context(
 def answer_question(index, model, filename: str, question: str):
     context = find_context(index, filename, question)
     response = answer_question_from_context(model, question, context)
+    return response
+
+
+def answer_question_without_context(model, question: str):
+    response = model.text_generation(question)
     return response
 
 

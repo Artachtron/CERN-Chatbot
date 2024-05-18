@@ -6,6 +6,7 @@ class PathManager:
     backend = Path(__file__).parents[2]
     source = backend / "src"
     resources = backend / "resources"
+    output = backend / "output"
     config = source / "config"
     databases = source / "databases"
     documents = databases / "documents"

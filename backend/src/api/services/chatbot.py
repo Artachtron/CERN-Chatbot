@@ -1,8 +1,8 @@
-from rag.pipeline import get_index, answer_question
+from rag.pipeline import answer_question_without_context, get_index, answer_question
 from dataclasses import dataclass, field
 from llama_index.core import VectorStoreIndex
 from rag.model import Model
-from utils.conf import CONFIG
+from config.conf import CONFIG
 from functools import lru_cache
 
 
@@ -17,6 +17,7 @@ class ChatBot:
         self.model = Model(CONFIG.chat_model)
 
     def get_answer(self, question: str):
+        return answer_question_without_context(self.model, question)
         return answer_question(self.index, self.model, self.filename, question)
 
 
