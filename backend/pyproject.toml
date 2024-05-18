@@ -22,6 +22,7 @@ psycopg2-binary = "^2.9.9"
 alembic = "^1.13.1"
 uvicorn = "^0.29.0"
 unstructured = "^0.14.0"
+cohere = "^5.5.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.3"

@@ -59,30 +59,8 @@ def maximal_marginal_relevance(results, k, lambda_param=0.5):
 
 
 
-4
-
-
-
     
 
-def create_reference_and_collection(
-    self, collection_name: str, reference_name: str
-):
-    existing_collections = self.client.collections.list_all()
-    if not reference_name in existing_collections:
-        self.create_collection(collection_name=reference_name, raw=True)
-
-    else:
-        print(f"Collection {reference_name} already exists")
-
-    if not collection_name in existing_collections:
-        self.create_collection(
-            collection_name=collection_name,
-            reference_name=reference_name,
-            raw=False,
-        )
-    else:
-        print(f"Collection {collection_name} already exists")
 
 
 

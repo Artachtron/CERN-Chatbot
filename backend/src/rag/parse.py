@@ -1,4 +1,3 @@
-# from unstructured.partition.auto import partition_pdf
 from functools import lru_cache
 from typing import Any
 from unstructured.documents.elements import Element
@@ -9,10 +8,9 @@ from config.conf import CONFIG
 from utils.tokens import UNSTRUCTURED_API_KEY
 from unstructured_client.models import shared
 from unstructured_client.models.errors import SDKError
-from unstructured.partition.api import partition_via_api
 import json
 
-# docker run -dt --name unstructured -p 5000:5000 --rm -e PORT=5000 -v C:/Users/flore/Documents/code/CERN-RAG/backend/resources:/app/resources downloads.unstructured.io/unstructured-io/unstructured:latest
+# docker run -dt --name unstructured -p 5000:5000 --rm -e PORT=5000 -v C:/Users/flore/Documents/code/CERN-RAG/backend/resources:/app/resources downloads.unstructured.io/unstructured-io/unstructured-api:latest
 
 
 @lru_cache
@@ -24,7 +22,7 @@ def get_unstructured_client():
     )
 
 
-def partition_file(file_path: Path):
+def partition_file(filepath: Path):
 
     output_file: Path = PATH.output / filepath.stem / "elements.json"
     if Path.exists(output_file):
@@ -34,18 +32,20 @@ def partition_file(file_path: Path):
             return elements
 
     client = get_unstructured_client()
-    print(f"Processing {file_path}")
+    print(f"Processing {filepath}")
 
-    file = open(file_path, "rb")
+    file = open(filepath, "rb")
 
     req = shared.PartitionParameters(
         files=shared.Files(
             content=file.read(),
-            file_name=str(file_path),
+            file_name=str(filepath),
         ),
-        strategy="fast",
+        strategy="auto",
+        # hi_res_model_name="yolox",
         chunking_strategy="by_title",
         pdf_infer_table_structure=True,
+        extract_image_block_types=["Image", "Table"],
         languages=["eng"],
     )
 
@@ -55,14 +55,6 @@ def partition_file(file_path: Path):
         elements = res.elements
     except SDKError as e:
         print(e)
-
-    # elements = partition_pdf(
-    #     filename=file_path,
-    #     languages=["en"],
-    #     extract_images_in_pdf=True,
-    #     extract_image_block_output_dir=temp_folder.name,
-    #     chunking_strategy="by_title",
-    # )
 
     if elements:
         save_elements(output_file, elements)
@@ -79,7 +71,7 @@ def save_elements(output_file: Path, elements: list[Any]):
 def sort_elements(elements: list[Element]) -> dict[str, list[Element]]:
     sorted_elements = {}
     for el in elements:
-        category = el.category
+        category = el["type"]
         if category not in sorted_elements:
             sorted_elements[category] = []
         sorted_elements[category].append(el)
@@ -90,43 +82,10 @@ def sort_elements(elements: list[Element]) -> dict[str, list[Element]]:
 if __name__ == "__main__":
     # elements, temp_folder = partition_file(PATH.resources / filename)
 
-    filename = "CERN-Brochure-2021-007-Eng.pdf"
+    filename = "CERN-Brochure-2021-004-Eng.pdf"
     filepath = PATH.resources / filename
 
     elements = partition_file(filepath)
 
-    # api_url = CONFIG.unstructured_local_url
-    """ elements = partition_via_api(
-        filename=str(filepath),
-        api_url=api_url,
-    ) """
-
-    """ client = UnstructuredClient(
-        api_key_auth=UNSTRUCTURED_API_KEY,
-        server=CONFIG.unstructured_local_url,
-        server_url=CONFIG.unstructured_local_url,
-    )
-
-    file = open(filepath, "rb")
-
-    req = shared.PartitionParameters(
-        files=shared.Files(
-            content=file.read(),
-            file_name=filename,
-        ),
-        strategy="fast",
-    )
-
-    try:
-        res = client.general.partition(req)
-        print(res.elements[0])
-        elements = res.elements
-    except SDKError as e:
-        print(e) """
-
-    #
-    print(elements)
-    print(json.dumps(elements[:], indent=2))
     # sorted_elements = sort_elements(elements)
     # print(sorted_elements)
-    # temp_folder.cleanup()

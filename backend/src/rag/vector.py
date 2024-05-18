@@ -6,7 +6,7 @@ from weaviate import WeaviateClient
 from weaviate.collections import Collection
 import weaviate.classes as wvc
 import weaviate.classes.config as wvcc
-from rag.schema import Schema
+from rag.schema import Schema, Element
 from uuid import UUID
 from config.conf import CONFIG
 from weaviate.util import generate_uuid5
@@ -33,6 +33,7 @@ schema_property_map = {
     list[float]: wvcc.DataType.NUMBER_ARRAY,
     list[bool]: wvcc.DataType.BOOL_ARRAY,
     dict: wvcc.DataType.OBJECT_ARRAY,
+    dict[str, str]: wvcc.DataType.OBJECT,
 }
 
 
@@ -126,7 +127,23 @@ def create_raw_collection(
     )
 
 
-async def add_document(
+def create_reference_and_collection(
+    client: WeaviateClient, collection_name: str, reference_name: str
+):
+    create_raw_collection(
+        client, schema=Element, collection_name=reference_name, delete_if_exists=True
+    )
+
+    create_vectorized_collection(
+        client=client,
+        schema=Element,
+        collection_name=collection_name,
+        references={"from": reference_name},
+        delete_if_exists=True,
+    )
+
+
+def add_document(
     client: WeaviateClient,
     collection_name: str,
     document: dict | Schema,
@@ -143,7 +160,25 @@ async def add_document(
     )
 
 
-async def add_documents(
+def add_doc_with_ref(
+    client, collection_name: str, reference_name: str, reference: dict, document: dict
+):
+    reference_id = add_document(
+        client,
+        collection_name=reference_name,
+        document=reference,
+        references=None,
+    )
+
+    add_document(
+        client,
+        collection_name=collection_name,
+        document=document,
+        references={"from": reference_id},
+    )
+
+
+def add_documents(
     client: WeaviateClient,
     collection_name: str,
     documents: list[dict[str, Any] | Schema],

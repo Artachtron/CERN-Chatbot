@@ -4,7 +4,7 @@ from utils.tokens import HF_API_KEY, COHERE_API_KEY
 from dataclasses import dataclass, field
 from utils.path import PATH
 
-# import cohere
+import cohere
 
 
 @dataclass
@@ -29,23 +29,23 @@ class Model:
         )
 
 
-# @dataclass
-# class Cohere:
-#     model: cohere.Client = field(init=False)
+@dataclass
+class Cohere:
+    model: cohere.Client = field(init=False)
 
-#     def __post_init__(self):
-#         self.model = cohere.Client(COHERE_API_KEY)
+    def __post_init__(self):
+        self.model = cohere.Client(COHERE_API_KEY)
 
-#     def format_prompt(self, prompt: str) -> str:
-#         return prompt
+    def format_prompt(self, prompt: str) -> str:
+        return prompt
 
-#     def text_generation(self, prompt: str) -> str:
-#         preamble = prompt[0]["content"]
-#         message = prompt[1]["content"]
-#         response = self.model.chat(
-#             preamble=preamble,
-#             message=message,
-#         )
-#         data = response.__dict__
-#         data["message"] = data.pop("text")
-#         return data["message"]
+    def text_generation(self, prompt: str) -> str:
+        preamble = prompt[0]["content"]
+        message = prompt[1]["content"]
+        response = self.model.chat(
+            preamble=preamble,
+            message=message,
+        )
+        data = response.__dict__
+        data["message"] = data.pop("text")
+        return data["message"]
