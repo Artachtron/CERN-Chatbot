@@ -2,10 +2,12 @@ src/experiment/*
 .venv/*
 poetry.lock
 __pycache__/
-src/backend/secrets.env
 resources/*
-src/backend/databases/postgres/database.yaml
+backend/databases/postgres/database.yaml
 infra/k8s/*
 *.production.env
 *.sql
 node_modules/
+backend/secrets.env
+.vscode/launch.json
+backend/output/*

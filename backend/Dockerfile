@@ -1,19 +1,15 @@
 FROM python:3.10
 
-WORKDIR /usr/src/backend
-ENV PYTHONPATH /usr/src/
+WORKDIR /usr/backend
+ENV PYTHONPATH /usr/backend/src
 
 COPY poetry.lock ./
 COPY pyproject.toml ./
 
-RUN pip install poetry
-
-RUN poetry export -o requirements.txt
-
 RUN apt-get update && apt-get install -y libgl1-mesa-glx
-
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install poetry
+RUN poetry install --no-interaction --no-ansi
 
 COPY . .
 
-CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["poetry", "run", "uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

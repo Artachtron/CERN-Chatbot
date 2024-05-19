@@ -1,3 +1,19 @@
+from langchain_core.prompts import (
+    PromptTemplate,
+    PipelinePromptTemplate,
+    ChatPromptTemplate,
+)
+from utils.path import PATH
+from config.conf import CONFIG
+
+
+def get_template(template_name: str) -> PromptTemplate:
+    with open(PATH.prompts / template_name, "r") as f:
+        template = f.read()
+
+    return PromptTemplate.from_template(template)
+
+
 def get_prompt(
     context_name: str,
     context: str,
@@ -23,8 +39,29 @@ def get_table_prompt(table_text: str) -> list[dict]:
     return messages
 
 
-def get_qa_prompt(question: str, context: str) -> list[dict]:
-    preamble = """You are an assistant tasked with answering questions. Use the context provided, just answer the question straight up."""
-    messages = get_prompt("CONTEXT", context, preamble, question, query_name="QUESTION")
+# def get_qa_prompt(question: str, context: str) -> list[dict]:
+#     preamble = """You are an assistant tasked with answering questions. Use the context provided, just answer the question straight up."""
+#     messages = get_prompt("CONTEXT", context, preamble, question, query_name="QUESTION")
 
-    return messages
+#     return messages
+
+
+def get_qa_prompt(history: list[dict]):
+    # return ChatPromptTemplate.from_messages(
+    #     [(entry["username"], entry["text"]) for entry in history]
+    # )
+    return "\n\n".join([f"{entry['username']}: {entry['text']}" for entry in history])
+
+
+def get_rag_template(model_name: str = CONFIG.chat_model) -> PipelinePromptTemplate:
+    model_template = get_template(f"{model_name.replace(':','_')}.txt")
+    prompt_template = get_template("qa.txt")
+
+    pipeline_prompts = [
+        ("prompt", prompt_template),
+    ]
+
+    return PipelinePromptTemplate(
+        pipeline_prompts=pipeline_prompts,
+        final_prompt=model_template,
+    )

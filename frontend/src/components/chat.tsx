@@ -1,38 +1,81 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent, TextField, Button } from "@mui/material";
-import Message from "./message";
+import Message, { MessageProps } from "./message";
+import { BASE_URL } from "@/utils/backend";
 
 function Chat() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<MessageProps[]>([]);
 
   const [message, setMessage] = useState("");
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const messagesEndRef = useRef(null);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSubmit = async (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
     event.preventDefault();
-    if (!message.trim().length) return;
+    if (!message || !message.trim().length) return;
 
     setIsBotTyping(true);
 
-    setMessages([...messages, { username: "Human", text: message }]);
+    setMessages([
+      ...messages,
+      { username: "Human", text: message },
+      { username: "Bot", text: "" },
+    ]);
+
     setMessage("");
 
-    const response = await fetch("http://localhost:8000/chat/question", {
+    fetch(`${BASE_URL}/chat/question`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ question: message }),
+      body: JSON.stringify({ question: message, history: messages }),
+    }).then((response) => {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8", { fatal: true });
+
+      return new Promise((resolve, reject) => {
+        reader
+          .read()
+          .then(function process({ done, value }) {
+            if (done) {
+              setIsBotTyping(false);
+              resolve();
+              return;
+            }
+            const newData = decoder.decode(value);
+            console.log(newData);
+            setMessages((old) => {
+              const oldMessages = [...old];
+              const lastMessage = oldMessages.pop();
+              return [
+                ...oldMessages,
+                { username: "Bot", text: lastMessage?.text + newData },
+              ];
+            });
+
+            reader.read().then(process).catch(reject);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
     });
 
-    const data = await response.json();
-    console.log(data);
+    // const data = await response.json();
+    // console.log(data);
 
-    setTimeout(() => {
-      setMessages((old) => [...old, { from: "Bot", text: data.answer }]);
-    }, 1000);
+    // setTimeout(() => {
+    //   setMessages((old) => [...old, { username: "Bot", text: data }]);
+    // }, 1000);
   };
 
   const handleChangeMessage = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +83,7 @@ function Chat() {
   };
 
   return (
-    <Card>
+    <Card className="w-[1000px]">
       <CardContent>
         <div className="h-[400px] overflow-auto mb-4">
           {messages.map((message, index) => (
@@ -50,6 +93,7 @@ function Chat() {
               username={message.username}
             />
           ))}
+          <div ref={messagesEndRef} />
         </div>
         <form>
           <TextField

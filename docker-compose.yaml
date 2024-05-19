@@ -1,11 +1,11 @@
 services:
   frontend:
-    build: ./frontend
+    build: frontend
     ports:
       - "3000:3000"
 
   backend:
-    build: ./backend
+    build: backend
     ports:
       - "8000:8000"
     depends_on:
@@ -20,7 +20,7 @@ services:
       - "5432:5432"
     restart: always
     env_file:
-      - ./backend/databases/postgres/database.production.env
+      - ./backend/src/databases/postgres/database.production.env
     environment:
       - PGDATA=/var/lib/postgresql/data
     volumes:
