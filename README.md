@@ -1,3 +1,12 @@
-Work in progress.
-
-Only works locally with proper configs.
+# CERN Chatbot
+<img src="https://raw.githubusercontent.com/Unstructured-IO/unstructured-api-tools/main/img/unstructured_logo.png" title="Unstructured.io" width="25" /><img src="https://devblogs.microsoft.com/azure-sql/wp-content/uploads/sites/56/2024/02/langchain.png" title="LangChain" width="25" />
+<img src="https://bookface-images.s3.amazonaws.com/logos/ee60f430e8cb6ae769306860a9c03b2672e0eaf2.png" title="Ollama" width="25" />
+<img src="https://d11a6trkgmumsb.cloudfront.net/original/4X/8/1/1/811ef156e2525559c859ecdb7a5cd26d5e459e46.png" title="Weaviate" width="25" />
+<img src="https://cdn-lfs.huggingface.co/repos/96/a2/96a2c8468c1546e660ac2609e49404b8588fcf5a748761fa72c154b2836b4c83/942cad1ccda905ac5a659dfd2d78b344fccfb84a8a3ac3721e08f488205638a0?response-content-disposition=inline%3B+filename*%3DUTF-8%27%27hf-logo.svg%3B+filename%3D%22hf-logo.svg%22%3B&response-content-type=image%2Fsvg%2Bxml&Expires=1716474473&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTcxNjQ3NDQ3M319LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2RuLWxmcy5odWdnaW5nZmFjZS5jby9yZXBvcy85Ni9hMi85NmEyYzg0NjhjMTU0NmU2NjBhYzI2MDllNDk0MDRiODU4OGZjZjVhNzQ4NzYxZmE3MmMxNTRiMjgzNmI0YzgzLzk0MmNhZDFjY2RhOTA1YWM1YTY1OWRmZDJkNzhiMzQ0ZmNjZmI4NGE4YTNhYzM3MjFlMDhmNDg4MjA1NjM4YTA%7EcmVzcG9uc2UtY29udGVudC1kaXNwb3NpdGlvbj0qJnJlc3BvbnNlLWNvbnRlbnQtdHlwZT0qIn1dfQ__&Signature=Emd1ceDud-3eDpOi32qIKc9j53%7Evc5hfFdKteUqWsaNvz6mJr5bw52rbGhIR1OHFF-l7T0RTUpwy-Tw1AhNUPHbxmA0oSzU8ztz80HlToHs5ugdm8y1DYJTnaMCbmkMD1n-BTxMd7h9kjTcOqRt8u-WJtPaobnAAPlWNU7L8jrNGVi3r4YOxwnjgyq0-U9qGdW4kROdpiRgPduihgtyIzrg7kPryOlySmdfNpUoH-YPyUIOtMAT9oVThHyIF88s-EPW6ylOsbSdsCY35suloqHeotA2Ps--iw7pZ8M0fSAZ6LwMRYKN2oNEmwXJWOK1%7Enj-oBzOnQU31UlMBizOOzA__&Key-Pair-Id=KVTP0A1DKRTAX" title="HuggingFace" width="25" />
+<img src="https://asset.brandfetch.io/idfDTLvPCK/idfkFVkJdH.png" title="CohereAI" width="25" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/fastapi/fastapi-original.svg" title="FastAPI" width="25" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original.svg" title="Next.js" width="25" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg" title="React" width="25" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/materialui/materialui-original.svg" title="Material-UI" width="25" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg" title="Docker" width="25" />
+          
