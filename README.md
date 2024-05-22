@@ -10,6 +10,8 @@
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/materialui/materialui-original.svg" title="Material-UI" width="25" />
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg" title="Docker" width="25" />
 
+![Preview](docs/preview.gif)
+
 ## Description
 This project features a custom-built chatbot designed specifically for inquiries related to the Large Hadron Collider (LHC). Leveraging data from the 'LHC The Guide' brochure, I meticulously curated and converted it into a database for rapid retrieval. The chatbot excels in delivering accurate responses by efficiently fetching pertinent information from its database. With its intuitive interface and streamlined operation, users can expect swift and reliable answers to their inquiries regarding the LHC. Explore the world of particle physics effortlessly with our LHC Inquiry Chatbot!
 
